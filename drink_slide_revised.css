@@ -1,0 +1,164 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #fff8eb;
+  color: #34291e;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+main {
+  max-width: 620px;
+  margin: auto;
+  padding: 16px;
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.kicker {
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  color: #b77936;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 900;
+}
+
+button {
+  border: 1px solid #ded6c8;
+  background: white;
+  border-radius: 12px;
+  padding: 10px 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stats {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stat {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 9px 13px;
+  flex: 1;
+}
+
+.stat small {
+  display: block;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.stat strong {
+  font-size: 21px;
+}
+
+.arena {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 2px solid #e8d5b4;
+  background: #f9ecd4;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.hint {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #64748b;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.levels {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.item {
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #eee7dd;
+  border-radius: 12px;
+  padding: 9px 1px;
+}
+
+.emoji {
+  font-size: 23px;
+}
+
+.item small {
+  display: block;
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 3px;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: #fffaf0ed;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.overlay.show {
+  display: flex;
+}
+
+.next-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  padding: 8px 14px;
+  background: #fff;
+  border: 1px solid #eadfce;
+  border-radius: 14px;
+}
+
+.next-preview span {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.next-preview strong {
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.next-preview small {
+  font-size: 12px;
+  color: #8b6b46;
+}
