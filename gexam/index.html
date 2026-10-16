@@ -8,6 +8,7 @@
       content="A personal wiki for browsing and searching notes."
     />
     <title>Personal Wiki</title>
+    <base target="page-frame" />
     <link href="pagefind/pagefind-ui.css" rel="stylesheet" />
     <style>
       :root {
@@ -34,9 +35,17 @@
       }
 
       .site-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
         padding: 1rem clamp(1rem, 4vw, 3rem);
         color: #fff;
         background: #172554;
+      }
+
+      .site-heading {
+        min-width: 0;
       }
 
       .site-name {
@@ -51,17 +60,91 @@
         font-size: 0.9rem;
       }
 
+      .search-button,
+      .search-close {
+        display: grid;
+        flex: 0 0 auto;
+        place-items: center;
+        border: 1px solid rgb(255 255 255 / 35%);
+        border-radius: 0.65rem;
+        color: #fff;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .search-button {
+        width: 2.75rem;
+        height: 2.75rem;
+      }
+
+      .search-button:hover,
+      .search-close:hover {
+        background: rgb(255 255 255 / 12%);
+      }
+
+      .search-button:focus-visible,
+      .search-close:focus-visible {
+        outline: 3px solid #93c5fd;
+        outline-offset: 3px;
+      }
+
+      .search-button svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      .search-dialog {
+        width: min(44rem, calc(100vw - 2rem));
+        max-width: none;
+        max-height: min(80vh, 48rem);
+        max-height: min(80dvh, 48rem);
+        overflow: auto;
+        padding: 1.25rem;
+        border: 1px solid var(--line);
+        border-radius: 1rem;
+        color: #1e293b;
+        background: #fff;
+        box-shadow: 0 24px 64px rgb(15 23 42 / 24%);
+      }
+
+      .search-dialog::backdrop {
+        background: rgb(15 23 42 / 55%);
+        backdrop-filter: blur(2px);
+      }
+
+      .search-dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .search-heading {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .search-close {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-color: var(--line);
+        color: #334155;
+      }
+
+      .search-close:hover {
+        background: #f1f5f9;
+      }
+
       .layout {
         display: grid;
-        grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr);
         gap: 1.25rem;
-        max-width: 1600px;
+        width: 100%;
         min-height: calc(100vh - 78px);
-        margin: 0 auto;
         padding: 1.25rem;
       }
 
-      .search-panel,
       .content-panel {
         min-width: 0;
         overflow: hidden;
@@ -69,16 +152,6 @@
         border-radius: 1rem;
         background: #fff;
         box-shadow: 0 8px 24px rgb(15 23 42 / 5%);
-      }
-
-      .search-panel {
-        align-self: start;
-        padding: 1.25rem;
-      }
-
-      .search-heading {
-        margin: 0 0 0.75rem;
-        font-size: 1rem;
       }
 
       .content-panel {
@@ -102,7 +175,11 @@
           padding: 0.85rem;
         }
 
-        .search-panel {
+        .site-header {
+          padding: 1rem;
+        }
+
+        .search-dialog {
           padding: 1rem;
         }
 
@@ -114,18 +191,64 @@
   </head>
   <body>
     <header class="site-header">
-      <h1 class="site-name">Personal Wiki</h1>
-      <p class="site-note">A home for notes, references, and ideas</p>
+      <div class="site-heading">
+        <h1 class="site-name">Personal Wiki</h1>
+        <p class="site-note">A home for notes, references, and ideas</p>
+      </div>
+      <button
+        class="search-button"
+        id="search-button"
+        type="button"
+        aria-label="Open search"
+        aria-haspopup="dialog"
+        aria-controls="search-dialog"
+      >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle
+            cx="10.8"
+            cy="10.8"
+            r="6.8"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <path
+            d="m16 16 5 5"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
     </header>
+    <dialog
+      class="search-dialog"
+      id="search-dialog"
+      aria-labelledby="search-heading"
+    >
+      <div class="search-dialog-header">
+        <h2 class="search-heading" id="search-heading">Search notes</h2>
+        <form method="dialog">
+          <button class="search-close" type="submit" aria-label="Close search">
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="m6 6 12 12M18 6 6 18"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </form>
+      </div>
+      <div id="search"></div>
+    </dialog>
     <main class="layout">
-      <section class="search-panel" aria-labelledby="search-heading">
-        <iframe
-          class="page-frame"
-          id="search-frame"
-          src="search_sidebar.html"
-          title="Search">
-        </iframe>
-      </section>
       <section class="content-panel" aria-label="Featured page">
         <iframe
           class="page-frame"
@@ -141,6 +264,45 @@
       new PagefindUI({
         element: "#search",
         showImages: false,
+        showSubResults: true,
+      });
+
+      const searchDialog = document.getElementById("search-dialog");
+      const searchButton = document.getElementById("search-button");
+      const search = document.getElementById("search");
+
+      searchButton.addEventListener("click", () => {
+        searchDialog.showModal();
+        search.querySelector("input")?.focus();
+      });
+
+      searchDialog.addEventListener(
+        "keydown",
+        (event) => {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            searchDialog.close();
+          }
+        },
+        true,
+      );
+
+      searchDialog.addEventListener("click", (event) => {
+        if (event.target instanceof Element && event.target.closest("#search a")) {
+          searchDialog.close();
+          return;
+        }
+
+        if (event.target !== searchDialog) return;
+
+        const bounds = searchDialog.getBoundingClientRect();
+        const clickedOutside =
+          event.clientX < bounds.left ||
+          event.clientX > bounds.right ||
+          event.clientY < bounds.top ||
+          event.clientY > bounds.bottom;
+
+        if (clickedOutside) searchDialog.close();
       });
     </script>
   </body>
