@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Search Algorithms Summary</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3 {
+            color: #1a365d;
+        }
+        h1 {
+            border-bottom: 2px solid #2b6cb0;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #fff;
+        }
+        th, td {
+            border: 1px solid #cbd5e0;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #ebf8ff;
+            color: #2b6cb0;
+        }
+        ul, ol {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        code {
+            background-color: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.9em;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #2c5282;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Summary of Tree Search Algorithms</h1>
+
+    <h2>1. Comparison: DFS vs. BFS</h2>
+    <p>Tree traversal typically relies on two foundational approaches: <strong>Depth-First Search (DFS)</strong> and <strong>Breadth-First Search (BFS)</strong>. They navigate search spaces with opposing core mechanics, leading to completely different resource constraints and ideal use cases.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Feature</th>
+                <th>Depth-First Search (DFS)</th>
+                <th>Breadth-First Search (BFS)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="highlight">Core Strategy</td>
+                <td>Dives deep down a single path/branch to its terminal end before backtracking.</td>
+                <td>Explores the tree level-by-level, radiating outward from the root node.</td>
+            </tr>
+            <tr>
+                <td class="highlight">Data Structure</td>
+                <td>Uses a <strong>Stack</strong> (LIFO - Last In, First Out) or recursion.</td>
+                <td>Uses a <strong>Queue</strong> (FIFO - First In, First Out).</td>
+            </tr>
+            <tr>
+                <td class="highlight">Memory Usage</td>
+                <td><strong>Very Low:</strong> Only needs to store the nodes of the single path it is currently walking.</td>
+                <td><strong>Extremely High:</strong> Must track all neighbor nodes across an entire layer simultaneously in RAM.</td>
+            </tr>
+            <tr>
+                <td class="highlight">Optimality</td>
+                <td>Not guaranteed to find the shortest path first.</td>
+                <td><strong>Guaranteed</strong> to find the shortest path first (in unweighted graphs).</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Suitable Problems For Each Approach</h3>
+    <ul>
+        <li>
+            <strong>BFS is best for:</strong> Problems requiring the shortest, closest, or fewest moves to a known target. 
+            <em>Examples:</em> GPS routing (fewest intersections), social network connectivity (degrees of separation), web crawlers, and flood-fill/broadcasting simulations.
+        </li>
+        <li>
+            <strong>DFS is best for:</strong> Problems involving deep decision trees where memory is restricted, games requiring long-term future planning, or situations where you need to track an entire complex sequence of events to a definitive end state.
+        </li>
+    </ul>
+
+    <h2>2. Key Concepts & Variations of Depth-First Search</h2>
+    <p>In adversarial game theory and complex problem-solving, traditional DFS is enhanced using the following variations and safety systems:</p>
+
+    <ul>
+        <li>
+            <span class="highlight">Mini-Max Algorithm:</span> A decision-making framework for two-player, zero-sum games. It maps out a game tree assuming both players will play perfectly. The AI acts as the <strong>Maximizer</strong> (choosing paths that maximize its score), while the opponent acts as the <strong>Minimizer</strong> (choosing paths that limit the AI's score).
+        </li>
+        <li>
+            <span class="highlight">Alpha-Beta (AB) Pruning:</span> An optimization that skips calculating branches that are mathematically proven to be irrelevant. It maintains two values: Alpha (the minimum score the Maximizer is guaranteed) and Beta (the maximum score the Minimizer will allow). If <code>Alpha &gt;= Beta</code>, the branch is "pruned" (cut off) because a rational opponent would never allow the game to go down that path.
+        </li>
+        <li>
+            <span class="highlight">The Horizon Effect:</span> A fundamental vulnerability where a strict depth limit (e.g., stopping exactly at 10 turns deep) leaves the algorithm blind to massive tactical shifts happening just past its viewing limit (at turn 11 or 12).
+        </li>
+        <li>
+            <span class="highlight">Quiescence Search:</span> The main fail-safe against the Horizon Effect. When the algorithm hits its maximum depth limit, it evaluates whether the current board position is "unstable" (e.g., active piece trades or checks). If unstable, it extends the search strictly for tactical capture moves until the board becomes "quiet" (stable) before calculating a score.
+        </li>
+        <li>
+            <span class="highlight">Heuristic Evaluation Functions:</span> Rules used to score the game state when the algorithm cannot reach the end of the match. Beyond counting surviving pieces (material value), a modern function factors in piece mobility, center board control, king safety, and permanent pawn structures (e.g., passed or isolated pawns).
+        </li>
+        <li>
+            <span class="highlight">Iterative Deepening:</span> A hybrid strategy that manages DFS. Instead of launching a blind search straight to Depth 10, the engine performs separate, complete DFS passes at Depth 1, then Depth 2, then Depth 3, and so on. This ensures a safety-net move is always available if the clock runs out, and it enables near-perfect <strong>Move Ordering</strong>.
+        </li>
+        <li>
+            <span class="highlight">The Tightly Correlated Tree Assumption:</span> The core philosophical foundation that makes Iterative Deepening effective. It relies on the reality that games like chess change incrementally (gradually) rather than randomly. Therefore, a high-scoring move found at Depth 9 has an incredibly high probability of remaining a great move at Depth 10, serving as an effective starting branch to achieve immediate Alpha-Beta pruning.
+        </li>
+    </ul>
+
+</body>
+</html>
