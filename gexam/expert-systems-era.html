@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Expert Systems Era</title>
+<style>
+  :root { color-scheme: light; --ink:#1e293b; --muted:#526174; --accent:#155e75; --line:#d8e2e9; --paper:#fff; --wash:#f2f7f8; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  main { max-width:900px; margin:40px auto; padding:48px 56px; background:var(--paper); box-shadow:0 8px 32px #0f172a12; }
+  h1,h2,h3 { line-height:1.25; }
+  h1 { margin:0 0 8px; font-size:2.35rem; letter-spacing:-.03em; }
+  h2 { margin:38px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--line); color:var(--accent); font-size:1.45rem; }
+  h3 { margin:20px 0 4px; font-size:1.08rem; }
+  p { margin:10px 0; }
+  .dek { color:var(--muted); font-size:1.12rem; }
+  .timeline { margin:24px 0; padding:18px 22px; background:#eaf4f5; border-left:4px solid var(--accent); }
+  .timeline strong { color:var(--accent); }
+  .note { color:var(--muted); font-size:.94rem; }
+  a { color:#075985; }
+  li { margin:7px 0; }
+  .label { font-weight:700; }
+  footer { margin-top:36px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; }
+  @media(max-width:650px) { main { margin:0; padding:28px 20px; } h1 { font-size:1.9rem; } }
+  @media print { body { background:white; } main { margin:0 auto; padding:0; box-shadow:none; } a { color:inherit; text-decoration:none; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>The Expert Systems Era</h1>
+  <p class="dek">How rule-based AI became a commercial boom, what it could do, why it hit limits, and how later systems such as IBM Watson differed.</p>
+</header>
+<section class="timeline" aria-label="Brief timeline">
+  <strong>Brief timeline</strong><br>
+  <b>1960s–70s:</b> Early knowledge-based programs establish the approach.<br>
+  <b>1980s:</b> Expert systems become a prominent commercial AI technology.<br>
+  <b>Late 1980s–early 1990s:</b> High development and maintenance costs, narrow performance, and unmet expectations cool the market.<br>
+  <b>1984 onward:</b> The Cyc project pursues broad common-sense knowledge and reasoning.<br>
+  <b>2011:</b> IBM Watson wins the television quiz show <i>Jeopardy!</i> using a different, language- and evidence-processing architecture.
+</section>
+
+<h2>1. What expert systems were</h2>
+<p>An expert system is a program designed to make recommendations or classifications in a limited subject area by applying encoded knowledge. A typical system had a <b>knowledge base</b> containing domain facts and rules, plus an <b>inference engine</b> that applied those rules to a particular case. Some systems could show which rules supported a conclusion.</p>
+<p>They were designed to capture a specialist’s practical know-how for a well-defined task—not to reproduce all of a person’s general intelligence.</p>
+
+<h2>2. Well-known examples</h2>
+<ul>
+  <li><b>DENDRAL:</b> Helped chemists infer molecular structures from mass-spectrometry data; an influential early science application.</li>
+  <li><b>MYCIN:</b> A Stanford research system that recommended antibiotics for certain blood infections based on clinical evidence. It was influential but did not become a routine hospital product.</li>
+  <li><b>XCON (R1):</b> Configured Digital Equipment Corporation VAX computer orders, checking that components selected for a customer were compatible. It became a prominent commercial success.</li>
+  <li><b>PROSPECTOR:</b> Used geological knowledge to help assess mineral exploration prospects.</li>
+  <li><b>PUFF:</b> Interpreted pulmonary-function test results and prepared reports to support clinicians.</li>
+</ul>
+
+<h2>3. Core technology of the era</h2>
+<ul>
+  <li><b>Symbolic representation:</b> Concepts, facts, and relationships were represented explicitly in forms a program could manipulate.</li>
+  <li><b>Rules and inference:</b> Often expressed as “if conditions, then conclusion/action.” An inference engine matched rules to known facts to derive recommendations.</li>
+  <li><b>Knowledge engineering:</b> A knowledge engineer worked with specialists to elicit, formalize, test, and maintain the domain knowledge.</li>
+  <li><b>Uncertainty handling:</b> Some systems attached certainty factors or other scores to conclusions instead of treating every input as perfectly certain.</li>
+  <li><b>Knowledge structures:</b> Frames, semantic networks, and later formal ontologies were related ways to organize concepts and relations. These ideas were not invented for Watson; some knowledge-based and expert systems used structured representations alongside rules.</li>
+</ul>
+<p>These methods made the systems’ reasoning relatively explicit and inspectable, but their capability depended heavily on the knowledge that had been entered and on how the rules were designed.</p>
+
+<h2>4. Why expert systems declined</h2>
+<ul>
+  <li><b>Knowledge acquisition bottleneck:</b> Experts’ know-how is often tacit, context-dependent, or difficult to articulate. Extracting it and converting it into accurate rules took substantial time and specialist effort.</li>
+  <li><b>Brittleness and narrow scope:</b> A system could perform well on cases within its encoded domain, then fail when facts were missing, a case was unusual, or the situation fell outside its rules. It generally lacked robust common-sense understanding.</li>
+  <li><b>Maintenance burden:</b> Rules had to be revised when products, practices, or regulations changed. Large rule bases could become difficult to update without creating conflicts or unexpected effects.</li>
+  <li><b>Limited learning and adaptation:</b> Most classic systems did not learn from new examples automatically; people had to add or change the rules.</li>
+  <li><b>Deployment costs and expectations:</b> Integrating systems into real organizations and keeping them reliable could be more expensive than expected. The gap between ambitious promises and practical results reduced commercial enthusiasm.</li>
+</ul>
+<p class="note">The field did not disappear: successful systems remained useful in constrained applications. The decline refers mainly to the broader commercial boom and the expectation that expert systems could be built and scaled easily.</p>
+
+<h2>5. The Cyc project</h2>
+<p>Started by Douglas Lenat in 1984, <b>Cyc</b> set a broader goal than a conventional expert system: build a large, reusable store of everyday common-sense knowledge that software could use for logical reasoning. Its knowledge base contains concepts, assertions, and general rules—for example, assumptions about physical objects, time, and cause and effect. CycL is the formal language used to represent much of this knowledge.</p>
+<p>Cyc belongs to the same broad symbolic and knowledge-based AI tradition, but it was not a typical single-domain expert system. Its ambition was general-purpose common-sense reasoning across many domains. That ambition also made knowledge entry, organization, coverage, and consistency long-term challenges. Development continued through Cycorp.</p>
+
+<h2>6. IBM Watson compared with classic expert systems</h2>
+<p>The best-known Watson, the system that competed on <i>Jeopardy!</i> in 2011, was not simply a larger 1980s expert system. IBM’s DeepQA approach analyzed natural-language clues, searched large collections of text, generated candidate answers, gathered supporting evidence, and ranked candidates with confidence scores. It combined many language-processing, information-retrieval, statistical, and machine-learning components.</p>
+<ul>
+  <li><b>Classic expert system:</b> Primarily applies human-authored domain rules to structured facts in a narrow area.</li>
+  <li><b>Watson on Jeopardy!:</b> Processes a question, searches unstructured text for evidence, and ranks possible answers under uncertainty.</li>
+  <li><b>What carried over:</b> Both rely on knowledge and computational reasoning, and both can combine multiple methods.</li>
+  <li><b>What changed:</b> Watson’s language analysis, large-scale text search, and statistical ranking let it work with open-ended clues without depending mainly on a hand-built rule set for every answer.</li>
+</ul>
+<p>So Watson was more capable at language-heavy, evidence-seeking tasks, but it was not a universal reasoner. Its strengths and limits depended on the particular system and task, just as expert systems did.</p>
+
+<h2>Sources and further reading</h2>
+<ul>
+  <li><a href="https://www.sciencedirect.com/science/article/abs/pii/B9780444871374500291">“Of Brittleness and Bottlenecks” (1988)</a> — knowledge acquisition and brittleness.</li>
+  <li><a href="https://www.sciencedirect.com/science/article/pii/0167739X87900380">“The scope and limitations of first generation expert systems” (1987)</a> — early analysis of limitations.</li>
+  <li><a href="https://www.govinfo.gov/content/pkg/GOVPUB-C13-317d16eca06b44face3805d30021d02d/pdf/GOVPUB-C13-317d16eca06b44face3805d30021d02d.pdf">NIST, “An Overview of Expert Systems”</a> — expert-system concepts and development issues.</li>
+  <li><a href="https://cyc.com/about-us/">Cycorp: About Cyc</a> — company history and project description.</li>
+  <li><a href="https://cyc.com/wp-content/uploads/2019/09/Cyc-Technology-Overview.pdf">Cyc Technology Overview</a> — knowledge base and reasoning platform.</li>
+  <li><a href="https://research.ibm.com/publications/building-watson-an-overview-of-the-deepqa-project">IBM Research, “Building Watson: An Overview of the DeepQA Project”</a> — Watson’s architecture.</li>
+</ul>
+<footer>Prepared as a concise historical overview. Dates and descriptions summarize the cited sources; product capabilities varied by implementation.</footer>
+</main>
+</body>
+</html>
