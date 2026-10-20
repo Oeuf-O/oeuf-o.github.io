@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A concise guide to influential object detection, semantic segmentation, instance segmentation, and panoptic segmentation models.">
+  <title>Computer Vision Models: A Quick Guide</title>
+  <style>
+    :root { color-scheme: light; --ink:#182230; --muted:#526173; --line:#dce4ec; --blue:#2457a7; --paper:#fff; --wash:#f3f7fb; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    header { background:#132a46; color:#fff; padding:52px 24px 42px; }
+    .wrap { max-width:1080px; margin:auto; }
+    header .wrap { max-width:1080px; }
+    .eyebrow { text-transform:uppercase; letter-spacing:.12em; font-size:.78rem; font-weight:700; color:#a9c9f4; }
+    h1 { font-size:clamp(2rem,5vw,3.2rem); line-height:1.12; margin:.45rem 0 .8rem; }
+    header p { max-width:760px; margin:0; color:#d8e5f5; font-size:1.08rem; }
+    main { padding:28px 20px 60px; }
+    nav { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 24px; }
+    nav a { color:var(--blue); text-decoration:none; background:white; border:1px solid var(--line); border-radius:999px; padding:7px 13px; font-size:.92rem; }
+    nav a:hover { background:#e8f1fc; }
+    .intro, section, .study { background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:0 3px 12px #1834500a; }
+    .intro { padding:20px 24px; margin-bottom:22px; }
+    section { margin:22px 0; overflow:hidden; }
+    section > h2 { margin:0; padding:18px 22px; font-size:1.4rem; border-bottom:1px solid var(--line); background:#fbfdff; }
+    .section-note { margin:0; padding:14px 22px 0; color:var(--muted); }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; min-width:680px; }
+    th,td { text-align:left; vertical-align:top; padding:13px 16px; border-bottom:1px solid var(--line); }
+    th { color:#43536a; background:#f7f9fc; font-size:.84rem; text-transform:uppercase; letter-spacing:.04em; }
+    tr:last-child td { border-bottom:0; }
+    td:first-child { width:25%; font-weight:700; white-space:nowrap; }
+    td:last-child { width:18%; }
+    .tag { display:inline-block; color:#234e86; background:#eaf2fc; border-radius:999px; padding:2px 9px; font-size:.78rem; font-weight:700; white-space:nowrap; }
+    a { color:var(--blue); }
+    .study { padding:22px 24px; margin-top:22px; }
+    .study h2 { margin:0 0 8px; font-size:1.3rem; }
+    .study ol { margin:10px 0 0; padding-left:1.3rem; }
+    .footnote { color:var(--muted); font-size:.9rem; margin-top:22px; }
+    footer { color:var(--muted); text-align:center; padding:0 20px 32px; font-size:.88rem; }
+    @media(max-width:650px) { header { padding:38px 20px 32px; } main { padding:20px 12px 42px; } .intro,.study { padding:17px; } section > h2 { padding:15px 17px; } th,td { padding:11px 12px; } }
+    @media print { body { background:white; } header { background:white; color:var(--ink); padding:20px 0; } header p,.eyebrow { color:var(--muted); } main { padding:0; } nav { display:none; } section,.intro,.study { box-shadow:none; break-inside:avoid; } a { color:inherit; text-decoration:none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="eyebrow">Computer vision · model overview</div>
+      <h1>Four ways to understand an image</h1>
+      <p>A quick guide to influential models for object detection, semantic segmentation, instance segmentation, and panoptic segmentation.</p>
+    </div>
+  </header>
+  <main class="wrap">
+    <nav aria-label="Page sections">
+      <a href="#detection">Object detection</a><a href="#semantic">Semantic segmentation</a><a href="#instance">Instance segmentation</a><a href="#panoptic">Panoptic segmentation</a>
+    </nav>
+    <div class="intro"><strong>At a glance:</strong> Detection draws boxes around objects. Semantic segmentation labels every pixel by category. Instance segmentation gives each object its own pixel mask. Panoptic segmentation combines semantic labels with separate masks for individual objects.</div>
+
+    <section id="detection">
+      <h2>Object detection</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Model</th><th>Core idea</th><th>Typical strength / tradeoff</th></tr></thead>
+        <tbody>
+          <tr><td>R-CNN</td><td>Creates candidate image regions, then runs a CNN on each region to classify it and refine its box.</td><td>Landmark accuracy gains; slow because CNN work is repeated. <a href="https://arxiv.org/abs/1311.2524">Paper</a></td></tr>
+          <tr><td>Fast R-CNN</td><td>Runs the CNN once on the whole image, then uses shared features to classify and refine proposed regions.</td><td>Much faster than R-CNN; still depends on a separate proposal method. <a href="https://openaccess.thecvf.com/content_iccv_2015/html/Girshick_Fast_R-CNN_ICCV_2015_paper.html">Paper</a></td></tr>
+          <tr><td>Faster R-CNN</td><td>Adds a Region Proposal Network (RPN) that shares image features with the detector.</td><td>Accurate, strong two-stage baseline; usually slower than one-stage models. <a href="https://arxiv.org/abs/1506.01497">Paper</a></td></tr>
+          <tr><td>SSD</td><td>Predicts classes and boxes in one pass at multiple feature-map scales.</td><td>Designed for speed; multiple scales help with differently sized objects. <a href="https://research.google.com/pubs/archive/44872.pdf">Paper</a></td></tr>
+          <tr><td>YOLO</td><td>Predicts boxes and classes directly from the full image in one pass.</td><td>Real-time design; the family has evolved substantially across versions. <a href="https://openaccess.thecvf.com/content_cvpr_2016/html/Redmon_You_Only_Look_CVPR_2016_paper.html">Original paper</a></td></tr>
+          <tr><td>RetinaNet <span class="tag">Recommended addition</span></td><td>One-stage detector using focal loss to focus training on harder examples instead of abundant easy background examples.</td><td>Helped close the accuracy gap between one-stage and two-stage detectors. <a href="https://arxiv.org/abs/1708.02002">Paper</a></td></tr>
+          <tr><td>DETR <span class="tag">Recommended addition</span></td><td>Uses a transformer and set prediction for end-to-end detection, without hand-designed anchors or the usual NMS step.</td><td>Introduces a different, transformer-based detection approach. <a href="https://arxiv.org/abs/2005.12872">Paper</a></td></tr>
+        </tbody>
+      </table></div>
+      <p class="section-note">A useful historical progression is R-CNN → Fast R-CNN → Faster R-CNN: each step reduces the cost of proposing and processing candidate regions.</p>
+    </section>
+
+    <section id="semantic">
+      <h2>Semantic segmentation</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Model</th><th>Core idea</th><th>Typical strength / tradeoff</th></tr></thead>
+        <tbody>
+          <tr><td>FCN</td><td>Turns classification networks fully convolutional to predict pixel labels; skip connections combine coarse semantics and finer detail.</td><td>Established end-to-end dense prediction as a standard approach. <a href="https://www.cv-foundation.org/openaccess/content_cvpr_2015/papers/Long_Fully_Convolutional_Networks_2015_CVPR_paper.pdf">Paper</a></td></tr>
+          <tr><td>SegNet</td><td>Encoder–decoder architecture; decoder uses max-pooling indices from the encoder to upsample features.</td><td>Designed for efficient scene segmentation and memory use. <a href="https://arxiv.org/abs/1511.00561">Paper</a></td></tr>
+          <tr><td>U-Net</td><td>Symmetric contracting and expanding paths with skip connections between matching resolutions.</td><td>Works well with limited annotated data; especially popular in biomedical imaging. <a href="https://arxiv.org/abs/1505.04597">Paper</a></td></tr>
+          <tr><td>DeepLabv2</td><td>Uses atrous (dilated) convolutions and ASPP to capture context at multiple scales; the original system also used CRF refinement.</td><td>Captures broad context while retaining spatial resolution. <a href="https://arxiv.org/abs/1606.00915">Paper</a></td></tr>
+          <tr><td>DeepLabv3</td><td>Improves multi-scale context with parallel or cascaded atrous modules and image-level features.</td><td>Strong segmentation without requiring the earlier CRF post-processing. <a href="https://arxiv.org/abs/1706.05587">Paper</a></td></tr>
+          <tr><td>PSPNet</td><td>Uses pyramid pooling to gather scene context at several spatial scales.</td><td>Wider scene context helps resolve ambiguous pixels. <a href="https://arxiv.org/abs/1612.01105">Paper</a></td></tr>
+          <tr><td>DeepLabv3+ <span class="tag">Recommended addition</span></td><td>Extends DeepLabv3 with a decoder to recover object boundaries and spatial detail.</td><td>A useful follow-up to DeepLabv3. <a href="https://arxiv.org/abs/1802.02611">Paper</a></td></tr>
+        </tbody>
+      </table></div>
+      <p class="section-note">A useful distinction: U-Net and SegNet emphasize encoder–decoder recovery of detail, while DeepLab and PSPNet emphasize multi-scale context.</p>
+    </section>
+
+    <section id="instance">
+      <h2>Instance segmentation</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Model</th><th>Core idea</th><th>Typical strength / tradeoff</th></tr></thead>
+        <tbody>
+          <tr><td>Mask R-CNN</td><td>Extends Faster R-CNN with a parallel mask branch, producing a separate pixel mask for each detected object.</td><td>Flexible, influential baseline; its two-stage design is not primarily aimed at real-time speed. <a href="https://openaccess.thecvf.com/content_iccv_2017/html/He_Mask_R-CNN_ICCV_2017_paper.html">Paper</a></td></tr>
+          <tr><td>YOLACT</td><td>Predicts shared prototype masks and combines them with per-object coefficients.</td><td>Designed for real-time instance segmentation. <a href="https://openaccess.thecvf.com/content_ICCV_2019/html/Bolya_YOLACT_Real-Time_Instance_Segmentation_ICCV_2019_paper.html">Paper</a></td></tr>
+          <tr><td>YOLACT++ <span class="tag">Recommended addition</span></td><td>Improves YOLACT with changes including better localization and an improved mask-coefficient branch.</td><td>Follow-up for its speed and mask quality tradeoffs. <a href="https://arxiv.org/abs/1912.06218">Paper</a></td></tr>
+          <tr><td>Cascade Mask R-CNN <span class="tag">Recommended addition</span></td><td>Combines instance masks with a cascade of detectors trained at increasingly strict box-quality thresholds.</td><td>Shows how a strong two-stage baseline can be refined. <a href="https://openaccess.thecvf.com/content_CVPR_2019/html/Cai_Cascade_R-CNN_Delving_Into_High_Quality_Object_Detection_CVPR_2019_paper.html">Paper</a></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="panoptic">
+      <h2>Panoptic segmentation</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Model</th><th>Core idea</th><th>Why learn it</th></tr></thead>
+        <tbody><tr><td>Panoptic FPN</td><td>Adds a semantic-segmentation branch to Mask R-CNN and shares a feature pyramid between both branches.</td><td>A clear baseline for combining individual object masks with labels for background regions. <a href="https://openaccess.thecvf.com/content_CVPR_2019/html/Kirillov_Panoptic_Feature_Pyramid_Networks_CVPR_2019_paper.html">Paper</a></td></tr></tbody>
+      </table></div>
+    </section>
+
+    <div class="study"><h2>Suggested reading order</h2><p>Build up the ideas from foundational architectures to combined and speed-focused models:</p><ol><li>FCN</li><li>Faster R-CNN</li><li>YOLO or RetinaNet</li><li>U-Net</li><li>DeepLabv3</li><li>Mask R-CNN</li><li>YOLACT</li><li>Panoptic FPN</li></ol></div>
+    <p class="footnote">Note: “Mask R-CNN” is assumed to be the intended model where “Mark R-CNN” was written.</p>
+  </main>
+  <footer>Computer vision model guide · Links point to original papers or publisher repositories.</footer>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A representative architecture for an AI assistant that decides when to search, evaluates retrieved evidence, and writes a grounded answer.">
+  <title>Representative Architecture: Search-Enabled Assistant</title>
+  <style>
+    :root { color-scheme:light; --ink:#182230; --muted:#526173; --line:#d7e1ec; --navy:#173454; --blue:#2c65aa; --teal:#19756d; --gold:#996413; --paper:#fff; --wash:#f2f6fa; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    header { background:var(--navy); color:#fff; padding:44px 24px 36px; }
+    .wrap { max-width:1100px; margin:auto; }
+    .eyebrow { color:#b5d1ef; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.12em; }
+    h1 { margin:.45rem 0 .7rem; line-height:1.12; font-size:clamp(2rem,5vw,3rem); }
+    header p { max-width:850px; margin:0; color:#dfebf7; font-size:1.05rem; }
+    main { padding:24px 18px 52px; }
+    .notice,.panel { background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:0 3px 12px #1834500a; }
+    .notice { padding:16px 20px; margin-bottom:20px; border-left:5px solid #6d8bb0; }
+    .diagram { background:white; border:1px solid var(--line); border-radius:16px; padding:22px; box-shadow:0 3px 12px #1834500a; }
+    .diagram h2 { margin:0 0 4px; font-size:1.35rem; }
+    .sub { margin:0 0 20px; color:var(--muted); }
+    .lane { display:grid; grid-template-columns:1.08fr 1.35fr .95fr 1.18fr; gap:30px; align-items:stretch; }
+    .col { display:flex; flex-direction:column; gap:12px; }
+    .col-title { font-size:.75rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#6a788a; padding:0 3px 4px; }
+    .node { border:1px solid var(--line); border-radius:11px; padding:13px 14px; background:#fbfdff; position:relative; min-height:68px; }
+    .node b { display:block; margin-bottom:3px; }
+    .node small { display:block; color:var(--muted); font-size:.87rem; line-height:1.45; }
+    .user { background:#eef4fb; border-color:#c9d9eb; }
+    .model { background:#edf4ff; border-color:#bfd3ee; }
+    .tool { background:#edf8f6; border-color:#b9ded8; }
+    .check { background:#fff8e9; border-color:#ead7a8; }
+    .output { background:#f3f5f8; border-color:#d3dbe5; }
+    .arrow { text-align:center; color:#8292a5; font-size:1.2rem; line-height:1; margin:-5px 0; }
+    .loop { grid-column:2 / 4; border:1px dashed #8ba6c5; border-radius:12px; padding:12px 14px; color:#3d5e83; background:#f5f9fe; font-size:.9rem; text-align:center; }
+    .loop strong { display:block; margin-bottom:3px; }
+    .callout-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:20px; }
+    .panel { padding:17px 18px; }
+    .panel h2 { margin:0 0 6px; font-size:1.08rem; }
+    .panel p { margin:0; color:var(--muted); font-size:.94rem; }
+    .panel ul { margin:8px 0 0; padding-left:1.2rem; color:var(--muted); font-size:.92rem; }
+    .foot { margin-top:18px; color:var(--muted); font-size:.9rem; }
+    footer { text-align:center; padding:0 20px 28px; color:var(--muted); font-size:.88rem; }
+    @media(max-width:850px) { .lane { grid-template-columns:1fr 1fr; gap:18px; } .loop { grid-column:1 / -1; grid-row:3; } .callout-row { grid-template-columns:1fr; } }
+    @media(max-width:560px) { header { padding:34px 18px 28px; } main { padding:16px 10px 36px; } .diagram { padding:16px; } .lane { grid-template-columns:1fr; gap:14px; } .loop { grid-column:1; grid-row:auto; } }
+    @media print { body { background:white; } header { background:white; color:var(--ink); padding:18px 0; } header p,.eyebrow { color:var(--muted); } main { padding:0; } .diagram,.notice,.panel { box-shadow:none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="eyebrow">AI systems · representative design</div>
+      <h1>How a search-enabled assistant can work</h1>
+      <p>A high-level architecture for deciding whether to search, gathering evidence, checking whether it answers the question, and composing a response.</p>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="notice"><strong>Scope:</strong> This is one representative design pattern, not a diagram of any particular product’s private implementation. Real systems vary, and some checks may be done by software around the language model.</div>
+    <section class="diagram" aria-label="System architecture diagram">
+      <h2>Request → evidence → answer</h2>
+      <p class="sub">The model can alternate between reasoning and tool use before it returns a final response.</p>
+      <div class="lane">
+        <div class="col">
+          <div class="col-title">1 · Request</div>
+          <div class="node user"><b>User question</b><small>“What are the latest rules?” plus conversation context</small></div>
+          <div class="arrow">↓</div>
+          <div class="node model"><b>Input preparation</b><small>Builds the model context from the message, relevant history, and available instructions</small></div>
+        </div>
+        <div class="col">
+          <div class="col-title">2 · Decide and retrieve</div>
+          <div class="node model"><b>Language model</b><small>Interprets the request and estimates whether its current context is enough</small></div>
+          <div class="arrow">↓ if external facts would help</div>
+          <div class="node tool"><b>Tool router</b><small>Checks tool availability and routes a structured search request</small></div>
+          <div class="arrow">↓ query</div>
+          <div class="node tool"><b>Search service</b><small>Finds pages or other sources and returns results, snippets, and links</small></div>
+        </div>
+        <div class="col">
+          <div class="col-title">3 · Assess evidence</div>
+          <div class="node check"><b>Evidence checks</b><small>Are the results relevant, recent enough, specific, and consistent?</small></div>
+          <div class="node check"><b>Source inspection</b><small>Open useful pages; extract text, dates, and source details</small></div>
+          <div class="node output"><b>Evidence context</b><small>Selected information is supplied back to the model</small></div>
+        </div>
+        <div class="col">
+          <div class="col-title">4 · Respond</div>
+          <div class="node model"><b>Language model</b><small>Uses the question and retrieved context to draft an answer</small></div>
+          <div class="arrow">↓</div>
+          <div class="node check"><b>Answer checks</b><small>Check coverage, unsupported claims, and whether citations support key statements</small></div>
+          <div class="arrow">↓</div>
+          <div class="node output"><b>Final response</b><small>Answer with sources or citations when appropriate</small></div>
+        </div>
+        <div class="loop"><strong>Search loop (optional)</strong>If key information is missing, stale, or conflicting, the model can issue a narrower query or inspect another source. Tool limits or application rules may stop the loop.</div>
+      </div>
+      <p class="foot">The quality judgment is probabilistic. A model can miss a gap or misread a source, so reliable systems may add source rules, validation code, and limits on tool calls.</p>
+    </section>
+
+    <div class="callout-row">
+      <section class="panel"><h2>What the model contributes</h2><p>Interprets the request, chooses or formulates a tool call, combines evidence with conversation context, and writes a coherent answer.</p></section>
+      <section class="panel"><h2>What tools contribute</h2><p>Search retrieves external material. Page readers or databases return content the model did not already have in its prompt.</p></section>
+      <section class="panel"><h2>What application logic can add</h2><p>Tool permissions, required lookups, timeouts, result formatting, source filters, citation checks, and a maximum number of search steps.</p></section>
+    </div>
+    <section class="panel" style="margin-top:14px"><h2>Why this is often called retrieval-augmented generation</h2><p>Relevant information is retrieved and added to the model’s working context, then the model generates a response using that context. The retrieved pages generally support the current answer; they are not automatically added to the model’s permanent training.</p></section>
+  </main>
+  <footer>Conceptual system diagram · Actual implementations differ in components, control flow, and verification.</footer>
+</body>
+</html>

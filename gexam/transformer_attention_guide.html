@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An accessible guide to Transformer models, self-attention, multi-head attention, training objectives, and source-target attention.">
+  <title>Transformers and Attention: A Guide</title>
+  <style>
+    :root { color-scheme:light; --ink:#182230; --muted:#526173; --line:#dce4ec; --blue:#2457a7; --paper:#fff; --wash:#f3f7fb; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    header { background:#132a46; color:#fff; padding:50px 24px 42px; }
+    .wrap { max-width:1000px; margin:auto; }
+    .eyebrow { color:#a9c9f4; font-size:.78rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { max-width:790px; font-size:clamp(2rem,5vw,3.2rem); line-height:1.12; margin:.5rem 0 .8rem; }
+    header p { max-width:760px; margin:0; color:#d8e5f5; font-size:1.08rem; }
+    main { padding:26px 20px 56px; }
+    nav { display:flex; flex-wrap:wrap; gap:9px; margin:0 0 20px; }
+    nav a { color:var(--blue); text-decoration:none; background:white; border:1px solid var(--line); border-radius:999px; padding:6px 12px; font-size:.9rem; }
+    nav a:hover { background:#e8f1fc; }
+    section,.callout { background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:0 3px 12px #1834500a; margin:18px 0; padding:22px 24px; }
+    h2 { font-size:1.4rem; margin:0 0 10px; }
+    h3 { font-size:1.08rem; margin:20px 0 6px; }
+    p { margin:8px 0; }
+    ul,ol { padding-left:1.35rem; }
+    li { margin:.35rem 0; }
+    .callout { background:#edf5ff; border-color:#c9dbef; }
+    .callout strong { color:#173f75; }
+    .example { padding:14px 16px; margin:14px 0; border-left:4px solid #4f83c4; background:#f2f7fd; border-radius:0 8px 8px 0; }
+    .steps { display:grid; grid-template-columns:repeat(5,1fr); gap:9px; margin:14px 0; }
+    .step { background:#f6f9fd; border:1px solid var(--line); border-radius:10px; padding:12px; }
+    .step b { display:block; color:#173f75; margin-bottom:4px; }
+    .step span { color:var(--muted); font-size:.9rem; }
+    .triplet { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:14px 0; }
+    .mini { background:#f6f9fd; border:1px solid var(--line); border-radius:10px; padding:14px; }
+    .mini h3 { margin:0 0 5px; color:#173f75; }
+    .mini p { margin:0; color:var(--muted); font-size:.94rem; }
+    .note { color:var(--muted); font-size:.92rem; }
+    footer { color:var(--muted); text-align:center; padding:0 20px 30px; font-size:.88rem; }
+    @media(max-width:740px) { header { padding:38px 20px 32px; } main { padding:18px 12px 40px; } section,.callout { padding:18px; } .steps { grid-template-columns:1fr; } .triplet { grid-template-columns:1fr; } }
+    @media print { body { background:#fff; } header { background:#fff; color:var(--ink); padding:20px 0; } header p,.eyebrow { color:var(--muted); } main { padding:0; } nav { display:none; } section,.callout { box-shadow:none; break-inside:avoid; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="eyebrow">Natural language processing · concept guide</div>
+      <h1>Transformers and attention</h1>
+      <p>How Transformers build context-sensitive representations, how multi-head attention works, and how models learn to use attention.</p>
+    </div>
+  </header>
+  <main class="wrap">
+    <nav aria-label="Page sections">
+      <a href="#what">Transformer basics</a><a href="#attention">Self-attention</a><a href="#multihead">Multi-head attention</a><a href="#training">Learning</a><a href="#cross">Source–target attention</a><a href="#types">Transformer types</a>
+    </nav>
+
+    <section id="what">
+      <h2>What is a Transformer?</h2>
+      <p>A <strong>Transformer</strong> is a neural-network architecture for processing sequences such as text. Its central mechanism is attention: tokens can use information from other tokens in the sequence to update their representations.</p>
+      <p>Unlike an RNN, which processes tokens one at a time and passes information through a recurrent state, a Transformer can connect tokens directly through attention. During training, it can usually process the tokens in parallel.</p>
+      <div class="example"><strong>Example:</strong> In “The animal didn’t cross the road because <em>it</em> was tired,” attention can allow the representation of <em>it</em> to use information from <em>animal</em> and other words in the sentence.</div>
+      <h3>Typical processing steps</h3>
+      <div class="steps">
+        <div class="step"><b>1. Tokenize</b><span>Split text into tokens, often word pieces.</span></div>
+        <div class="step"><b>2. Embed</b><span>Map each token to a learned vector.</span></div>
+        <div class="step"><b>3. Add position</b><span>Supply information about token order.</span></div>
+        <div class="step"><b>4. Attend</b><span>Let tokens gather relevant context.</span></div>
+        <div class="step"><b>5. Transform</b><span>Apply feed-forward layers; repeat in stacked blocks.</span></div>
+      </div>
+      <p>Attention by itself does not encode sequence order, so Transformers add positional information to token representations.</p>
+    </section>
+
+    <section id="attention">
+      <h2>Self-attention: how tokens exchange information</h2>
+      <p>In <strong>self-attention</strong>, each token compares itself with other tokens in the same sequence. The model creates three learned projections for each token:</p>
+      <div class="triplet">
+        <div class="mini"><h3>Query</h3><p>What information is this token looking for?</p></div>
+        <div class="mini"><h3>Key</h3><p>What information does each token offer for matching?</p></div>
+        <div class="mini"><h3>Value</h3><p>What information can each token contribute?</p></div>
+      </div>
+      <p>The model compares a token’s query with other tokens’ keys to calculate attention weights. It then uses those weights to combine the corresponding values. A high weight means that token contributes more to the updated representation.</p>
+      <p>Queries, keys, and values are learned from data. People do not specify in advance which words should connect.</p>
+    </section>
+
+    <section id="multihead">
+      <h2>Multi-head attention</h2>
+      <p><strong>Multi-head attention runs several attention operations in parallel.</strong> Each head has its own learned query, key, and value projections, so the heads can gather different information at the same time.</p>
+      <p>For the word <em>it</em>, one head might give more weight to <em>animal</em>, while another might use <em>tired</em> or the clause introduced by <em>because</em>. The model joins the heads’ outputs and transforms them into a new token representation.</p>
+      <p>Across layers, these updates let the model build richer representations from the surrounding sentence.</p>
+      <div class="callout"><strong>Heads do not have fixed human-assigned jobs.</strong> A head is not explicitly labeled “pronoun finder.” Heads may learn useful patterns, but their roles vary and are not necessarily easy to interpret.</div>
+      <p class="note">Attention weights indicate where a head draws information from, but they do not necessarily explain the model’s full reasoning.</p>
+    </section>
+
+    <section id="training">
+      <h2>Is a Transformer supervised learning?</h2>
+      <p><strong>Transformer describes an architecture, not a training type.</strong> A Transformer can be trained with supervised, self-supervised, or combined objectives.</p>
+      <ol>
+        <li><strong>A training objective supplies a signal.</strong> For example, a language model may predict the next token, or predict masked tokens.</li>
+        <li><strong>Predictions are compared with their training targets.</strong> The resulting errors are used to adjust the model’s parameters, including its attention projections.</li>
+        <li><strong>Useful patterns emerge across many examples.</strong> Relationships between pronouns, nouns, and surrounding meaning can help improve predictions.</li>
+      </ol>
+      <p>The model usually is not given a separate label that says “<em>it</em> refers to <em>animal</em>.” It learns from the task’s training signal. Many layers and heads contribute to a prediction; no single attention link necessarily contains the whole interpretation.</p>
+      <p>Sentences can be ambiguous. The model learns likely interpretations from patterns and context rather than applying a guaranteed grammar rule.</p>
+    </section>
+
+    <section id="cross">
+      <h2>Source–target attention (cross-attention)</h2>
+      <p>In an encoder–decoder Transformer, the encoder reads a <strong>source</strong> sequence and produces representations for its tokens. The decoder generates a <strong>target</strong> sequence. In source–target attention, also called <strong>cross-attention</strong>, the decoder uses encoder representations as context while generating each output token.</p>
+      <div class="example"><strong>Translation example</strong><br>Source: “The cat is sleeping.”<br>Target: “Le chat dort.”<br>The decoder can attend to source words while generating each translated word.</div>
+      <p>Cross-attention itself is not a learning type. When a model is trained on paired source and target examples, that training is supervised: the model learns to generate the provided target. It usually is not given explicit word-to-word alignment labels. Encoder–decoder models can also use other objectives, such as reconstructing corrupted text.</p>
+    </section>
+
+    <section id="types">
+      <h2>Common Transformer forms</h2>
+      <div class="triplet">
+        <div class="mini"><h3>Encoder-only</h3><p><strong>Example: BERT.</strong> Uses context from both directions; often used for text understanding and classification.</p></div>
+        <div class="mini"><h3>Decoder-only</h3><p><strong>Example: GPT.</strong> Predicts the next token from preceding tokens; commonly used for text generation.</p></div>
+        <div class="mini"><h3>Encoder–decoder</h3><p><strong>Examples: original Transformer, T5.</strong> Encodes an input and generates an output, as in translation.</p></div>
+      </div>
+      <p>Transformers can capture relationships between distant tokens directly, which is useful for long-range context. Standard self-attention compares tokens with one another, so its compute and memory costs grow roughly with the square of sequence length. Very long inputs can therefore be expensive.</p>
+    </section>
+  </main>
+  <footer>Transformer guide · Covers attention, training signals, and encoder–decoder models.</footer>
+</body>
+</html>

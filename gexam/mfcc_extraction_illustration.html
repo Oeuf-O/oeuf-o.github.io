@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A visual walkthrough of speech signal processing and MFCC extraction.">
+  <title>How Speech Becomes MFCCs</title>
+  <style>
+    :root { color-scheme:light; --ink:#182230; --muted:#566579; --line:#d9e2ec; --navy:#153351; --blue:#356db4; --teal:#168277; --gold:#d39228; --paper:#fff; --wash:#f2f6fa; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.58 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    header { background:var(--navy); color:white; padding:44px 24px 36px; }
+    .wrap { max-width:1080px; margin:auto; }
+    .eyebrow { color:#b5d1ef; font-size:.78rem; text-transform:uppercase; letter-spacing:.12em; font-weight:700; }
+    h1 { margin:.45rem 0 .65rem; font-size:clamp(2rem,5vw,3rem); line-height:1.12; }
+    header p { color:#dfebf7; max-width:800px; margin:0; font-size:1.05rem; }
+    main { padding:24px 18px 52px; }
+    .intro,.stage,.summary { background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:0 3px 12px #1834500a; }
+    .intro { padding:17px 20px; margin-bottom:18px; }
+    .pipeline { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:16px 0 22px; }
+    .pill { text-align:center; padding:11px 8px; background:#fff; border:1px solid var(--line); border-radius:10px; font-size:.88rem; font-weight:700; color:#244c7c; }
+    .pill span { display:block; color:#748194; font-size:1.2rem; font-weight:400; line-height:1.2; }
+    .stage { padding:19px 21px; margin:14px 0; }
+    .stage-head { display:flex; gap:12px; align-items:flex-start; margin-bottom:10px; }
+    .num { flex:0 0 34px; height:34px; border-radius:50%; display:grid; place-items:center; color:#fff; background:var(--blue); font-weight:800; }
+    h2 { font-size:1.2rem; margin:0; }
+    .stage-head p { margin:2px 0 0; color:var(--muted); font-size:.94rem; }
+    .visual { background:#fbfdff; border:1px solid #e7edf3; border-radius:10px; padding:12px; overflow-x:auto; }
+    svg { display:block; width:100%; min-width:560px; height:auto; }
+    .caption { color:var(--muted); font-size:.9rem; margin:9px 2px 0; }
+    .summary { padding:20px 22px; margin-top:18px; }
+    .summary h2 { margin-bottom:8px; }
+    .equation { padding:13px; text-align:center; background:#eef5fc; border-radius:9px; font-weight:700; color:#204a79; overflow-wrap:anywhere; }
+    .summary p { margin:10px 0 0; }
+    footer { text-align:center; color:var(--muted); font-size:.88rem; padding:0 20px 28px; }
+    @media(max-width:760px) { .pipeline { grid-template-columns:1fr; } .pill span { display:inline; padding:0 5px; } header { padding:35px 18px 28px; } main { padding:15px 10px 36px; } .stage { padding:16px; } }
+    @media print { body { background:#fff; } header { background:#fff; color:var(--ink); padding:16px 0; } header p,.eyebrow { color:var(--muted); } main { padding:0; } .intro,.stage,.summary { box-shadow:none; break-inside:avoid; } }
+  </style>
+</head>
+<body>
+  <header><div class="wrap">
+    <div class="eyebrow">Speech processing · visual walkthrough</div>
+    <h1>How speech becomes MFCCs</h1>
+    <p>MFCC extraction turns short slices of a speech waveform into compact vectors that summarize the shape of their frequency content.</p>
+  </div></header>
+  <main class="wrap">
+    <div class="intro"><strong>Big picture:</strong> One audio recording becomes many short frames. Each frame is converted from a waveform into a spectrum, summarized on the Mel scale, compressed with a logarithm and DCT, and represented by a small vector of coefficients.</div>
+    <div class="pipeline" aria-label="MFCC processing pipeline">
+      <div class="pill">Speech waveform<span>↓</span></div><div class="pill">Overlapping frames<span>↓</span></div><div class="pill">Spectrum + Mel filters<span>↓</span></div><div class="pill">Log energies + DCT<span>↓</span></div><div class="pill">MFCC sequence</div>
+    </div>
+
+    <section class="stage">
+      <div class="stage-head"><div class="num">1</div><div><h2>Start with the waveform</h2><p>Sound pressure recorded over time.</p></div></div>
+      <div class="visual">
+        <svg viewBox="0 0 900 175" role="img" aria-label="Speech waveform with short overlapping analysis frames">
+          <line x1="55" y1="88" x2="850" y2="88" stroke="#b7c4d2" stroke-width="1.5"/>
+          <g fill="none" stroke="#356db4" stroke-width="3" stroke-linecap="round">
+            <path d="M55 88 l12 -5 10 10 10 -32 10 56 10 -76 10 91 10 -63 10 28 10 -17 10 7 10 -4 10 3 10 -7 10 13 10 -31 10 38 10 -51 10 47 10 -13 10 8 10 -6 10 3 10 -4 10 7 10 -20 10 38 10 -53 10 55 10 -37 10 17 10 -9 10 7 10 -3 10 4 10 -8 10 19 10 -47 10 51 10 -36 10 23 10 -8 10 5 10 -3 10 2 10 -7 10 14 10 -31 10 39 10 -54 10 50 10 -25 10 11 10 -8 10 5 10 -2 10 3 10 -10 10 22 10 -44 10 49 10 -32 10 18 10 -11 10 6 10 -3 10 1 10 -5 10 11 10 -25 10 34 10 -40 10 30 10 -16 10 9 10 -5 10 2 10 -3"/>
+          </g>
+          <rect x="278" y="25" width="175" height="126" rx="8" fill="#f2bc52" fill-opacity=".18" stroke="#d39228" stroke-width="2"/>
+          <rect x="400" y="25" width="175" height="126" rx="8" fill="#21a699" fill-opacity=".12" stroke="#168277" stroke-width="2"/>
+          <text x="332" y="19" fill="#996413" font-size="14" font-family="system-ui">frame 1</text>
+          <text x="457" y="19" fill="#146b64" font-size="14" font-family="system-ui">frame 2</text>
+          <text x="55" y="166" fill="#65758a" font-size="13" font-family="system-ui">time →</text>
+          <text x="640" y="48" fill="#65758a" font-size="13" font-family="system-ui">Frames overlap so nearby</text><text x="640" y="66" fill="#65758a" font-size="13" font-family="system-ui">sounds are not abruptly cut apart.</text>
+        </svg>
+      </div>
+      <p class="caption">Speech changes continuously. The analysis uses short windows (often around 20–30 ms) and advances by a smaller hop, so adjacent frames overlap.</p>
+    </section>
+
+    <section class="stage">
+      <div class="stage-head"><div class="num">2</div><div><h2>Window each frame, then take its spectrum</h2><p>Describe which frequencies are present in that brief slice.</p></div></div>
+      <div class="visual">
+        <svg viewBox="0 0 900 215" role="img" aria-label="A short waveform frame transforms into a frequency spectrum">
+          <text x="75" y="25" fill="#394b61" font-size="15" font-family="system-ui" font-weight="700">Short frame in time</text>
+          <line x1="55" y1="115" x2="385" y2="115" stroke="#c2ccd7"/>
+          <path d="M60 115 Q75 112 85 115 T105 115 Q115 73 126 115 Q137 152 148 115 Q161 65 175 115 Q188 159 200 115 Q212 88 224 115 Q235 139 247 115 Q262 81 275 115 Q286 149 298 115 Q310 95 322 115 Q334 132 347 115 T380 115" fill="none" stroke="#356db4" stroke-width="3"/>
+          <path d="M55 55 Q220 75 385 55 M55 175 Q220 155 385 175" fill="none" stroke="#d39228" stroke-width="2" stroke-dasharray="5 5"/>
+          <text x="113" y="202" fill="#65758a" font-size="13" font-family="system-ui">window reduces sharp frame edges</text>
+          <line x1="423" y1="114" x2="493" y2="114" stroke="#94a4b7" stroke-width="2"/><path d="M493 114 l-12 -7 v14 z" fill="#94a4b7"/>
+          <text x="429" y="97" fill="#65758a" font-size="13" font-family="system-ui">Fourier</text><text x="431" y="135" fill="#65758a" font-size="13" font-family="system-ui">transform</text>
+          <text x="535" y="25" fill="#394b61" font-size="15" font-family="system-ui" font-weight="700">Magnitude spectrum</text>
+          <line x1="550" y1="175" x2="850" y2="175" stroke="#8392a4"/><line x1="550" y1="45" x2="550" y2="175" stroke="#8392a4"/>
+          <path d="M552 170 Q575 167 590 155 Q608 121 624 155 Q641 171 655 148 Q673 76 689 145 Q704 168 719 153 Q739 112 752 151 Q771 171 785 158 Q805 137 820 161 Q835 171 848 166" fill="none" stroke="#168277" stroke-width="3"/>
+          <text x="680" y="198" fill="#65758a" font-size="13" font-family="system-ui">frequency →</text><text x="500" y="58" fill="#65758a" font-size="12" font-family="system-ui">energy</text>
+        </svg>
+      </div>
+      <p class="caption">The window (commonly a Hamming window) tapers the frame edges. A Fourier transform then estimates energy at different frequencies; MFCCs use the magnitude or power spectrum.</p>
+    </section>
+
+    <section class="stage">
+      <div class="stage-head"><div class="num">3</div><div><h2>Summarize energy with Mel filters</h2><p>Combine nearby frequency bins into perceptually spaced bands.</p></div></div>
+      <div class="visual">
+        <svg viewBox="0 0 900 235" role="img" aria-label="Triangular Mel filter bank laid over a frequency spectrum">
+          <line x1="85" y1="181" x2="840" y2="181" stroke="#8392a4"/><line x1="85" y1="38" x2="85" y2="181" stroke="#8392a4"/>
+          <path d="M88 176 Q112 171 128 151 Q148 99 164 151 Q183 175 202 151 Q225 61 245 151 Q265 176 285 148 Q309 87 329 148 Q351 173 370 151 Q394 101 414 151 Q435 173 454 150 Q478 118 497 150 Q518 173 537 153 Q558 125 577 153 Q597 172 616 157 Q637 134 657 157 Q679 174 698 160 Q718 144 737 160 Q759 174 779 162 Q800 152 818 166 Q830 173 839 170" fill="none" stroke="#445b76" stroke-width="2.5"/>
+          <g fill="#356db4" fill-opacity=".14" stroke="#356db4" stroke-width="2">
+            <path d="M100 181 L143 77 L186 181 Z"/><path d="M154 181 L213 57 L272 181 Z"/><path d="M231 181 L301 78 L371 181 Z"/><path d="M326 181 L403 103 L480 181 Z"/><path d="M430 181 L509 119 L588 181 Z"/><path d="M539 181 L619 133 L699 181 Z"/><path d="M648 181 L728 145 L808 181 Z"/>
+          </g>
+          <text x="390" y="220" fill="#65758a" font-size="13" font-family="system-ui">frequency (Mel spacing grows wider toward higher frequencies) →</text>
+          <text x="27" y="55" fill="#65758a" font-size="12" font-family="system-ui">energy</text>
+          <text x="102" y="34" fill="#244c7c" font-size="13" font-family="system-ui">overlapping triangular filters</text>
+        </svg>
+      </div>
+      <p class="caption">Each triangle measures a weighted sum of spectrum energy in its band. The Mel scale places more filters in lower frequencies and fewer, wider-spaced filters at higher frequencies.</p>
+    </section>
+
+    <section class="stage">
+      <div class="stage-head"><div class="num">4</div><div><h2>Take log energies, then apply the DCT</h2><p>Convert filter-bank energies into a compact cepstral description.</p></div></div>
+      <div class="visual">
+        <svg viewBox="0 0 900 190" role="img" aria-label="Mel filter energies become log energies and then compact cepstral coefficients">
+          <text x="40" y="24" fill="#394b61" font-size="14" font-family="system-ui" font-weight="700">Mel-band energies</text>
+          <g fill="#6f9bd0"><rect x="50" y="112" width="19" height="50"/><rect x="77" y="82" width="19" height="80"/><rect x="104" y="53" width="19" height="109"/><rect x="131" y="91" width="19" height="71"/><rect x="158" y="66" width="19" height="96"/><rect x="185" y="106" width="19" height="56"/><rect x="212" y="126" width="19" height="36"/></g>
+          <text x="58" y="181" fill="#65758a" font-size="12" font-family="system-ui">band</text>
+          <line x1="258" y1="105" x2="327" y2="105" stroke="#94a4b7" stroke-width="2"/><path d="M327 105 l-12 -7 v14 z" fill="#94a4b7"/><text x="268" y="86" fill="#65758a" font-size="13" font-family="system-ui">log</text>
+          <text x="343" y="24" fill="#394b61" font-size="14" font-family="system-ui" font-weight="700">Log Mel energies</text>
+          <g fill="#168277"><rect x="355" y="90" width="19" height="72"/><rect x="382" y="69" width="19" height="93"/><rect x="409" y="50" width="19" height="112"/><rect x="436" y="75" width="19" height="87"/><rect x="463" y="57" width="19" height="105"/><rect x="490" y="86" width="19" height="76"/><rect x="517" y="102" width="19" height="60"/></g>
+          <line x1="560" y1="105" x2="623" y2="105" stroke="#94a4b7" stroke-width="2"/><path d="M623 105 l-12 -7 v14 z" fill="#94a4b7"/><text x="566" y="86" fill="#65758a" font-size="13" font-family="system-ui">DCT</text>
+          <text x="641" y="24" fill="#394b61" font-size="14" font-family="system-ui" font-weight="700">MFCCs</text>
+          <line x1="645" y1="117" x2="850" y2="117" stroke="#d9e2ec"/><g fill="#d39228"><rect x="657" y="45" width="24" height="72"/><rect x="692" y="78" width="24" height="39"/><rect x="727" y="91" width="24" height="26"/><rect x="762" y="99" width="24" height="18"/><rect x="797" y="103" width="24" height="14"/></g>
+          <text x="647" y="153" fill="#65758a" font-size="12" font-family="system-ui">c₀</text><text x="689" y="153" fill="#65758a" font-size="12" font-family="system-ui">c₁</text><text x="724" y="153" fill="#65758a" font-size="12" font-family="system-ui">c₂</text><text x="759" y="153" fill="#65758a" font-size="12" font-family="system-ui">c₃</text><text x="794" y="153" fill="#65758a" font-size="12" font-family="system-ui">c₄</text>
+          <text x="650" y="181" fill="#65758a" font-size="12" font-family="system-ui">often keep first coefficients</text>
+        </svg>
+      </div>
+      <p class="caption">The logarithm compresses energy differences. The discrete cosine transform (DCT) expresses the log Mel spectrum as coefficients; many systems keep only the first several coefficients, sometimes excluding or treating the overall-energy coefficient separately.</p>
+    </section>
+
+    <section class="summary">
+      <h2>Final output: a sequence of feature vectors</h2>
+      <div class="equation">audio → frames → spectrum → Mel-band energies → log → DCT → MFCCs</div>
+      <p>Each frame produces a vector such as <code>[c₀, c₁, c₂, …]</code>. Stacking the frame vectors gives a time sequence of features that a speech model can process. MFCC extraction summarizes each short frame; it does not by itself recognize words or model the sentence.</p>
+    </section>
+  </main>
+  <footer>Illustrative diagrams · Filter counts, frame size, hop length, and coefficient choices vary by system.</footer>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A concise introduction to RNN-based NLP models and contextual word representations, from BiRNNs and seq2seq to ELMo.">
+  <title>From Word2Vec to Contextual NLP Models</title>
+  <style>
+    :root { color-scheme:light; --ink:#182230; --muted:#526173; --line:#dce4ec; --blue:#2457a7; --paper:#fff; --wash:#f3f7fb; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.62 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    header { background:#132a46; color:#fff; padding:50px 24px 42px; }
+    .wrap { max-width:1000px; margin:auto; }
+    .eyebrow { color:#a9c9f4; font-size:.78rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { max-width:780px; font-size:clamp(2rem,5vw,3.15rem); line-height:1.12; margin:.5rem 0 .8rem; }
+    header p { color:#d8e5f5; max-width:760px; margin:0; font-size:1.08rem; }
+    main { padding:28px 20px 56px; }
+    .card { background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:0 3px 12px #1834500a; margin:20px 0; padding:22px 24px; }
+    h2 { margin:0 0 10px; font-size:1.4rem; }
+    h3 { margin:20px 0 6px; font-size:1.05rem; }
+    p { margin:8px 0; }
+    .lead { font-size:1.05rem; }
+    .example { margin:16px 0 4px; padding:14px 16px; border-left:4px solid #4f83c4; background:#f2f7fd; border-radius:0 8px 8px 0; }
+    .example strong { color:#173f75; }
+    .table-wrap { overflow-x:auto; margin:12px -2px 0; }
+    table { width:100%; min-width:680px; border-collapse:collapse; }
+    th,td { padding:13px 15px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { background:#f7f9fc; color:#43536a; font-size:.82rem; text-transform:uppercase; letter-spacing:.04em; }
+    tr:last-child td { border-bottom:0; }
+    td:first-child { width:22%; font-weight:700; white-space:nowrap; }
+    .flow { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:16px; }
+    .step { min-height:96px; display:flex; flex-direction:column; justify-content:center; text-align:center; padding:12px; background:#f2f7fd; border:1px solid #d6e4f4; border-radius:10px; }
+    .step b { color:#173f75; }
+    .step span { color:var(--muted); font-size:.88rem; }
+    .note { color:var(--muted); font-size:.92rem; }
+    footer { color:var(--muted); text-align:center; padding:0 20px 30px; font-size:.88rem; }
+    @media(max-width:700px) { header { padding:38px 20px 32px; } main { padding:18px 12px 40px; } .card { padding:18px; } .flow { grid-template-columns:1fr; } .step { min-height:0; } }
+    @media print { body { background:white; } header { background:white; color:var(--ink); padding:20px 0; } header p,.eyebrow { color:var(--muted); } main { padding:0; } .card { box-shadow:none; break-inside:avoid; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="eyebrow">Natural language processing · model overview</div>
+      <h1>From Word2Vec to contextual language models</h1>
+      <p>How sequence models such as RNNs, BiRNNs, seq2seq, and ELMo represent words using their context.</p>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="card">
+      <h2>The key idea</h2>
+      <p class="lead">Your intuition is broadly right: <strong>Word2Vec and fastText usually assign one vector to each word form</strong>, while recurrent models can build representations that change with the surrounding words.</p>
+      <div class="example"><strong>Example:</strong> “river bank” and “bank account” contain the same word, but a contextual model can represent <em>bank</em> differently in each sentence.</div>
+      <p class="note">RNNs were not developed only to fix static embeddings. They were also designed to model ordered sequences. Later systems, including ELMo, used recurrent language models to produce context-sensitive word representations.</p>
+    </section>
+
+    <section class="card">
+      <h2>Important models</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Model</th><th>How it works</th><th>What it adds</th></tr></thead>
+        <tbody>
+          <tr><td>RNN</td><td>Reads tokens one at a time and updates a hidden state that carries information from earlier tokens.</td><td>Uses sequence order and preceding context. Basic RNNs can struggle to retain information over long distances.</td></tr>
+          <tr><td>LSTM / GRU</td><td>RNN variants with gates that control which information to keep, update, or discard.</td><td>Handle longer dependencies better than basic RNNs; widely used building blocks for language and sequence tasks.</td></tr>
+          <tr><td>BiRNN</td><td>Runs one RNN left-to-right and another right-to-left, then combines their states.</td><td>Can use both earlier and later context. Useful when the full input is available, such as tagging or sentence classification.</td></tr>
+          <tr><td>Seq2seq</td><td>An encoder RNN reads the input; a decoder RNN generates the output sequence.</td><td>Maps sequences of different lengths, such as a source sentence to a translation. Early versions compressed the input into one fixed-size vector, limiting long inputs.</td></tr>
+          <tr><td>Seq2seq with attention</td><td>At each output step, the decoder can focus on relevant encoder states instead of relying only on one summary vector.</td><td>Improves input-output alignment and helps with longer sequences. Attention later became central to Transformers.</td></tr>
+          <tr><td>ELMo</td><td>A deep bidirectional language model predicts next words in one direction and previous words in the other; its internal states are combined for each word.</td><td>Produces contextual word vectors. It was commonly added as a pretrained feature for a downstream task model.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="card">
+      <h2>How the ideas build on each other</h2>
+      <div class="flow" aria-label="Model progression">
+        <div class="step"><b>Word2Vec / fastText</b><span>Mostly fixed word vectors</span></div>
+        <div class="step"><b>RNN language models</b><span>Ordered sequence states</span></div>
+        <div class="step"><b>BiRNN</b><span>Context from both directions</span></div>
+        <div class="step"><b>Seq2seq</b><span>Sequence-to-sequence tasks</span></div>
+        <div class="step"><b>ELMo</b><span>Pretrained contextual vectors</span></div>
+      </div>
+      <p class="note">This is a conceptual progression, not a strict sequence of replacements: these architectures address related but different tasks.</p>
+    </section>
+
+    <section class="card">
+      <h2>Where Transformers fit</h2>
+      <p>ELMo was an important step toward contextual representations. <strong>BERT and other Transformer models pursue the same broad idea</strong>—represent words using their context—but use attention instead of recurrent state updates.</p>
+    </section>
+  </main>
+  <footer>NLP model guide · A concise introduction to sequence models and contextual word representations.</footer>
+</body>
+</html>
