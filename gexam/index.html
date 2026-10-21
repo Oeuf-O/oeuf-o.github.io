@@ -164,10 +164,34 @@
       }
 
       .contents-heading {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
         margin: 0;
         color: #172554;
         font-size: clamp(1.5rem, 3vw, 2rem);
         letter-spacing: -0.03em;
+        cursor: pointer;
+        list-style: none;
+      }
+
+      .contents-heading::-webkit-details-marker {
+        display: none;
+      }
+
+      .contents-heading::before {
+        content: "▾";
+        font-size: 0.8em;
+        transition: transform 150ms ease;
+      }
+
+      .contents:not([open]) .contents-heading::before {
+        transform: rotate(-90deg);
+      }
+
+      .contents-heading:focus-visible {
+        outline: 3px solid #60a5fa;
+        outline-offset: 4px;
       }
 
       .contents-status {
@@ -300,15 +324,15 @@
     </dialog>
     <main class="layout">
       <section class="content-panel" aria-label="Wiki pages">
-        <div class="contents">
-          <h2 class="contents-heading">Table of contents</h2>
+        <details class="contents" id="contents" open>
+          <summary class="contents-heading">Table of contents</summary>
           <p class="contents-status" id="contents-status" role="status">
             Loading pages…
           </p>
           <nav aria-label="Pages">
             <ul class="page-list" id="page-list"></ul>
           </nav>
-        </div>
+        </details>
         <iframe
           class="page-frame"
           id="page-frame"
@@ -331,8 +355,13 @@
       const searchButton = document.getElementById("search-button");
       const search = document.getElementById("search");
       const pageFrame = document.getElementById("page-frame");
+      const contents = document.getElementById("contents");
       const pageList = document.getElementById("page-list");
       const contentsStatus = document.getElementById("contents-status");
+      const showPageInFrame = () => {
+        pageFrame.hidden = false;
+        contents.open = false;
+      };
       const resolvePageUrl = (url) => {
         const pageUrl = new URL(url, window.location.href);
         if (pageUrl.origin !== window.location.origin) return pageUrl.href;
@@ -411,7 +440,7 @@
 
       pageList.addEventListener("click", (event) => {
         if (event.target instanceof Element && event.target.closest("a")) {
-          pageFrame.hidden = false;
+          showPageInFrame();
         }
       });
 
@@ -431,7 +460,7 @@
           event.target instanceof Element && event.target.closest("#search a");
         if (searchLink) {
           searchLink.href = resolvePageUrl(searchLink.href);
-          pageFrame.hidden = false;
+          showPageInFrame();
           searchDialog.close();
           return;
         }
