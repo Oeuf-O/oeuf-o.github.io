@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A concise guide to image generation systems: VAEs, GANs, diffusion models, and NeRF.">
+<title>How Image Generation Systems Work</title>
+<style>
+:root{--ink:#192433;--muted:#586779;--paper:#f5f7fb;--card:#fff;--line:#dfe6ef;--blue:#315bd6;--teal:#087f8c;--violet:#7754c8;--gold:#bd7416}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}header{padding:64px 24px 52px;background:linear-gradient(120deg,#172a55,#315bd6 65%,#36a6ad);color:white}header .wrap,main{max-width:1000px;margin:auto}header p{max-width:720px;color:#e4eaff;font-size:1.12rem}h1{font-size:clamp(2.3rem,6vw,4rem);line-height:1.05;margin:0 0 18px;letter-spacing:-.04em}h2{font-size:1.8rem;line-height:1.2;margin:0 0 16px;letter-spacing:-.025em}h3{margin:0 0 8px;font-size:1.12rem}main{padding:34px 20px 70px}.intro{font-size:1.1rem;color:var(--muted);max-width:850px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:22px 0 42px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 6px 20px #172a5508}.card p{margin:8px 0;color:var(--muted)}.tag{display:inline-block;border-radius:999px;padding:3px 10px;font-size:.78rem;font-weight:700;background:#edf1ff;color:var(--blue);margin-bottom:10px}.teal{background:#e6f6f6;color:var(--teal)}.violet{background:#f1ecff;color:var(--violet)}.gold{background:#fff2df;color:var(--gold)}.flow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:20px 0 10px}.step{padding:12px 15px;border:1px solid var(--line);background:#fff;border-radius:12px;font-weight:650;text-align:center}.arrow{font-size:1.4rem;color:var(--blue)}.math{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:#f0f3f8;border-radius:8px;padding:12px 14px;overflow-wrap:anywhere;color:#273651}.section{margin:44px 0}.note{border-left:4px solid var(--teal);padding:14px 18px;background:#eaf7f7;border-radius:0 10px 10px 0;color:#244b52}.table-wrap{overflow-x:auto;background:white;border:1px solid var(--line);border-radius:14px}table{border-collapse:collapse;width:100%;min-width:680px}th,td{text-align:left;vertical-align:top;padding:14px 16px;border-bottom:1px solid var(--line)}th{background:#eef2fa}tr:last-child td{border-bottom:0}.nerf{background:linear-gradient(135deg,#13223f,#233c69);color:#fff;border-radius:18px;padding:26px}.nerf p{color:#e1e9f7}.nerf .step{color:var(--ink)}.nerf .arrow{color:#a7c4ff}a{color:#315bd6}footer{border-top:1px solid var(--line);margin-top:48px;padding-top:24px;color:var(--muted);font-size:.92rem}ul{padding-left:21px}li{margin:5px 0}.small{font-size:.92rem;color:var(--muted)}@media(max-width:700px){.grid{grid-template-columns:1fr}header{padding:44px 20px 36px}main{padding:26px 15px 52px}.card{padding:18px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<p style="text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;font-weight:700">A visual primer</p>
+<h1>How Image Generation Systems Work</h1>
+<p>VAEs, GANs, and diffusion models learn to create images in different ways. NeRF is related to visual AI, but solves a different problem: representing a 3D scene so it can be rendered from new viewpoints.</p>
+</div></header>
+<main>
+<p class="intro"><strong>The big picture:</strong> a model learns a representation of visual patterns from training data, then uses that representation to create, reconstruct, or render images. Text-to-image systems usually add a text encoder that turns a prompt into guidance for image creation.</p>
+
+<section class="section"><h2>1. The main image-generation techniques</h2>
+<div class="grid">
+<article class="card"><span class="tag">Compress and reconstruct</span><h3>VAE · Variational Autoencoder</h3>
+<p>A VAE encodes an image into a probability distribution in a compact <em>latent space</em>, samples a code from that distribution, then decodes the code back into an image. Sampling new codes can produce new images; the same encoder-decoder structure is also useful for compression and editing.</p>
+<div class="flow"><span class="step">Image</span><span class="arrow">→</span><span class="step">Encoder → latent distribution</span><span class="arrow">→</span><span class="step">Decoder → image</span></div>
+<p><strong>Where KL divergence fits:</strong> the encoder predicts a distribution such as <span class="math">q(z|x) = N(μ, diag(σ²))</span>. A KL-divergence penalty encourages it to stay near a simple prior, usually <span class="math">N(0, I)</span>. This makes the latent space more regular and easier to sample from.</p>
+<p class="math">Loss = reconstruction error + β · KL(q(z|x) || N(0,I))</p>
+<p>The reconstruction term rewards faithful images; the KL term regularizes latent codes. Too much KL pressure can soften reconstructions, while too little can make sampling less well-behaved. β-VAE adjusts this balance.</p></article>
+<article class="card"><span class="tag teal">Compete to improve</span><h3>GAN · Generative Adversarial Network</h3>
+<p>A <strong>generator</strong> creates images from random input. A <strong>discriminator</strong> tries to distinguish generated images from real ones. Training these networks in competition pushes the generator toward convincing outputs.</p>
+<div class="flow"><span class="step">Random code</span><span class="arrow">→</span><span class="step">Generator</span><span class="arrow">→</span><span class="step">Synthetic image</span><span class="arrow">↔</span><span class="step">Discriminator</span></div>
+<p>GANs can produce sharp images and offer useful latent-space controls. Training can be unstable, and a GAN may produce less variety if it fails to cover some modes of its training data.</p>
+<p><strong>Enhancements:</strong> StyleGAN introduced a style-based generator for more direct control over visual attributes. StyleGAN2 improved image quality, and StyleGAN3 adjusted signal processing to reduce aliasing and details that seem fixed to pixel coordinates.</p></article>
+<article class="card"><span class="tag violet">Iteratively remove noise</span><h3>Diffusion models</h3>
+<p>Training gradually adds noise to real images and teaches a network to predict or remove it. Generation runs this process in reverse: start with random noise and repeatedly denoise until a coherent image appears.</p>
+<div class="flow"><span class="step">Random noise</span><span class="arrow">→</span><span class="step">Denoise</span><span class="arrow">→</span><span class="step">Denoise again …</span><span class="arrow">→</span><span class="step">Image</span></div>
+<p>Text-to-image models encode the prompt and use it to guide denoising, commonly through attention mechanisms. Diffusion is flexible and produces detailed, varied results, though each generation may require many computation steps.</p>
+<p><strong>Enhancements:</strong> latent diffusion runs denoising in a compressed representation rather than directly over all pixels. Faster samplers reduce the number of denoising steps; guidance, inpainting, image-to-image tools, and structure controls steer the result. Cascaded or refinement stages can improve resolution and detail.</p></article>
+<article class="card"><span class="tag gold">Often combined</span><h3>How these pieces fit together</h3>
+<p>These are not always competing, standalone choices. A system can combine them. Stable Diffusion, for example, uses a VAE to encode and decode images and a diffusion model to create the latent image. Its text encoder supplies prompt conditioning.</p>
+<p>In this arrangement, the VAE is the image representation and decoder; diffusion is the generative process. A GAN-trained objective may also be used while training an autoencoder to improve visual sharpness.</p>
+<p class="small">A useful distinction: “VAE” may refer to the whole generative model or, in a larger system, just the autoencoder component.</p></article>
+</div></section>
+
+<section class="section"><h2>2. Well-known examples</h2>
+<div class="table-wrap"><table><thead><tr><th>Technique</th><th>Examples</th><th>Role</th></tr></thead><tbody>
+<tr><td><strong>VAE</strong></td><td>VAE research; autoencoder components in Stable Diffusion and DALL·E 3</td><td>Provides a compact latent representation and reconstructs images from it. In many modern systems, it works alongside another generator.</td></tr>
+<tr><td><strong>GAN</strong></td><td>StyleGAN, StyleGAN2, StyleGAN3</td><td>Direct image synthesis, especially well known for realistic faces and controllable visual features.</td></tr>
+<tr><td><strong>Diffusion</strong></td><td>Imagen, Stable Diffusion, SDXL, DALL·E 2, DALL·E 3</td><td>Iterative denoising, often guided by text. Stable Diffusion and SDXL are latent diffusion examples.</td></tr>
+</tbody></table></div>
+<p class="note"><strong>Generative AI keeps evolving.</strong> Not every current image system uses VAE, GAN, or diffusion as its main generation method. For example, OpenAI’s 2025 system card describes GPT‑4o image generation as autoregressive. Systems can also combine techniques internally.</p>
+</section>
+
+<section class="section"><h2>3. NeRF: a neural representation of a 3D scene</h2>
+<div class="nerf">
+<p><strong>NeRF</strong> means <em>Neural Radiance Field</em>. It represents a particular scene as a continuous function learned by a neural network. Given a 3D location and a viewing direction, the network predicts the point’s density and the color it emits toward that view.</p>
+<div class="flow"><span class="step">Several photos + camera poses</span><span class="arrow">→</span><span class="step">Train a neural scene</span><span class="arrow">→</span><span class="step">Render unseen viewpoints</span></div>
+<p>To render a pixel, the system traces a ray from the camera, samples points along it, queries the field, and blends the predicted colors and densities using volume rendering. It compares rendered views with the source photos and adjusts the network to make them match.</p>
+<p class="math">(x, y, z, viewing direction) → (density, color)</p>
+<p>NeRF is best understood as <strong>scene reconstruction and novel-view synthesis</strong>, rather than ordinary text-to-image generation. It can create a convincing view as a camera moves around a captured scene, without first building a conventional textured mesh. The original method can be slow; Instant-NGP’s multiresolution hash encoding is one approach that made neural graphics primitives much faster to train and evaluate.</p>
+</div>
+</section>
+
+<section class="section"><h2>4. Quick comparison</h2>
+<div class="table-wrap"><table><thead><tr><th>Method</th><th>Core idea</th><th>Typical strength</th><th>Common challenge</th></tr></thead><tbody>
+<tr><td>VAE</td><td>Encode to a regularized latent distribution, then decode</td><td>Compact, structured latent space; useful as a system component</td><td>Reconstruction can be blurry or lossy</td></tr>
+<tr><td>GAN</td><td>Generator competes against discriminator</td><td>Sharp outputs and latent control</td><td>Training instability and missing variety</td></tr>
+<tr><td>Diffusion</td><td>Learn to reverse gradual noise corruption</td><td>Detailed, flexible generation and editing</td><td>Iterative generation can be compute-intensive</td></tr>
+<tr><td>NeRF</td><td>Learn a 3D radiance field from posed images</td><td>Consistent rendering from new camera views</td><td>Needs suitable views; original versions can be slow</td></tr>
+</tbody></table></div>
+</section>
+<footer><strong>Further reading</strong><ul>
+<li>Kingma & Welling, <a href="https://arxiv.org/abs/1312.6114">Auto-Encoding Variational Bayes</a></li>
+<li>Rombach et al., <a href="https://arxiv.org/abs/2112.10752">High-Resolution Image Synthesis with Latent Diffusion Models</a></li>
+<li>Karras et al., <a href="https://arxiv.org/abs/2106.12423">Alias-Free Generative Adversarial Networks (StyleGAN3)</a></li>
+<li>Podell et al., <a href="https://arxiv.org/abs/2307.01952">SDXL: Improving Latent Diffusion Models for High-Resolution Image Synthesis</a></li>
+<li>Mildenhall et al., <a href="https://arxiv.org/abs/2003.08934">NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis</a></li>
+<li>Müller et al., <a href="https://arxiv.org/abs/2201.05989">Instant Neural Graphics Primitives with a Multiresolution Hash Encoding</a></li>
+<li>OpenAI, <a href="https://cdn.openai.com/11998be9-5319-4302-bfbf-1167e093f1fb/Native_Image_Generation_System_Card.pdf">GPT‑4o native image generation system card</a></li>
+</ul><p>Prepared as a concise educational overview. Model architectures evolve, and proprietary systems may not publish full technical details.</p></footer>
+</main>
+</body></html>

@@ -159,6 +159,52 @@
         flex-direction: column;
       }
 
+      .contents {
+        padding: clamp(1.25rem, 4vw, 2.5rem);
+      }
+
+      .contents-heading {
+        margin: 0;
+        color: #172554;
+        font-size: clamp(1.5rem, 3vw, 2rem);
+        letter-spacing: -0.03em;
+      }
+
+      .contents-status {
+        color: #64748b;
+      }
+
+      .page-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        gap: 0.75rem;
+        margin: 1.25rem 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .page-list a {
+        display: block;
+        height: 100%;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 0.75rem;
+        color: #1e3a8a;
+        background: #f8fafc;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .page-list a:hover {
+        border-color: #93c5fd;
+        background: #eff6ff;
+      }
+
+      .page-list a:focus-visible {
+        outline: 3px solid #60a5fa;
+        outline-offset: 2px;
+      }
+
       .page-frame {
         display: block;
         width: 100%;
@@ -166,6 +212,10 @@
         flex: 1;
         border: 0;
         background: #fff;
+      }
+
+      .page-frame[hidden] {
+        display: none;
       }
 
       @media (max-width: 760px) {
@@ -249,13 +299,23 @@
       <div id="search"></div>
     </dialog>
     <main class="layout">
-      <section class="content-panel" aria-label="Featured page">
+      <section class="content-panel" aria-label="Wiki pages">
+        <div class="contents">
+          <h2 class="contents-heading">Table of contents</h2>
+          <p class="contents-status" id="contents-status" role="status">
+            Loading pages…
+          </p>
+          <nav aria-label="Pages">
+            <ul class="page-list" id="page-list"></ul>
+          </nav>
+        </div>
         <iframe
           class="page-frame"
           id="page-frame"
           name="page-frame"
-          src="treesearch.html"
-          title="Summary of Tree Search Algorithms"
+          src="about:blank"
+          title="Selected wiki page"
+          hidden
         ></iframe>
       </section>
     </main>
@@ -270,10 +330,89 @@
       const searchDialog = document.getElementById("search-dialog");
       const searchButton = document.getElementById("search-button");
       const search = document.getElementById("search");
+      const pageFrame = document.getElementById("page-frame");
+      const pageList = document.getElementById("page-list");
+      const contentsStatus = document.getElementById("contents-status");
+      const resolvePageUrl = (url) => {
+        const pageUrl = new URL(url, window.location.href);
+        if (pageUrl.origin !== window.location.origin) return pageUrl.href;
+
+        const directoryUrl = new URL(".", window.location.href);
+        if (pageUrl.pathname.startsWith(directoryUrl.pathname)) {
+          return pageUrl.href;
+        }
+
+        const pagePath = pageUrl.pathname.replace(/^\/+/, "");
+        return new URL(
+          `${pagePath}${pageUrl.search}${pageUrl.hash}`,
+          directoryUrl,
+        ).href;
+      };
+
+      import("./pagefind/pagefind.js")
+        .then(async (pagefind) => {
+          await pagefind.init();
+          const entryResponse = await fetch("./pagefind/pagefind-entry.json");
+          if (!entryResponse.ok) {
+            throw new Error(
+              `Unable to load Pagefind index metadata: ${entryResponse.status}`,
+            );
+          }
+
+          const entry = await entryResponse.json();
+          const indexedPageCount = Object.values(entry.languages).reduce(
+            (count, language) => count + language.page_count,
+            0,
+          );
+          const pagesByUrl = new Map();
+
+          // Empty queries return no results, so search tokens until the index is covered.
+          for (const term of "abcdefghijklmnopqrstuvwxyz0123456789") {
+            const { results } = await pagefind.search(term);
+            const pages = await Promise.all(results.map((result) => result.data()));
+
+            for (const page of pages) {
+              pagesByUrl.set(page.url, page);
+            }
+
+            if (pagesByUrl.size >= indexedPageCount) break;
+          }
+
+          const pages = Array.from(pagesByUrl.values());
+
+          pages.sort((a, b) =>
+            (a.meta.title || a.url).localeCompare(b.meta.title || b.url),
+          );
+
+          for (const page of pages) {
+            const item = document.createElement("li");
+            const link = document.createElement("a");
+            link.href = resolvePageUrl(page.url);
+            link.textContent = page.meta.title || page.url;
+            item.append(link);
+            pageList.append(item);
+          }
+
+          contentsStatus.textContent =
+            pages.length === indexedPageCount
+              ? `${pages.length} pages`
+              : `${pages.length} of ${indexedPageCount} indexed pages found.`;
+        })
+        .catch((error) => {
+          console.error("Unable to load the table of contents.", error);
+          contentsStatus.textContent =
+            "Unable to load the table of contents. Please try again later.";
+        });
 
       searchButton.addEventListener("click", () => {
         searchDialog.showModal();
         search.querySelector("input")?.focus();
+      });
+
+      pageList.addEventListener("click", (event) => {
+        if (event.target instanceof Element && event.target.closest("a")) {
+          pageFrame.hidden = false;
+        }
       });
 
       searchDialog.addEventListener(
@@ -288,7 +427,11 @@
       );
 
       searchDialog.addEventListener("click", (event) => {
-        if (event.target instanceof Element && event.target.closest("#search a")) {
+        const searchLink =
+          event.target instanceof Element && event.target.closest("#search a");
+        if (searchLink) {
+          searchLink.href = resolvePageUrl(searchLink.href);
+          pageFrame.hidden = false;
           searchDialog.close();
           return;
         }
